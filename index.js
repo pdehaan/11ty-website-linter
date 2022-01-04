@@ -41,11 +41,16 @@ async function main(schemaMap = {}, pathPrefix = "", $dirname = process.cwd()) {
       try {
         await validate(data);
       } catch (err) {
-        const $errors = err.errors.map((error) => ({
+        // const $errors = err.errors.map((error) => ({
+        //   file: relFilePath,
+        //   data,
+        //   error,
+        // }));
+        const $errors = {
           file: relFilePath,
-          data,
-          error,
-        }));
+          errors: err.errors,
+          data
+        };
         dirErrors.push($errors);
       }
     }
