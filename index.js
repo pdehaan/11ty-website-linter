@@ -18,30 +18,27 @@ const schemaMap = {
 
 main(schemaMap, "./src/_data");
 
-async function main(schemaMap = {}, pathPrefix = "") {
-  console.log({ __dirname });
+async function main(schemaMap = {}, pathPrefix = "", $dirname=process.cwd()) {
   const ajv = new Ajv({ allErrors: true });
   addFormats(ajv);
 
   const errors = {};
   for (const [fileGlob, schema] of Object.entries(schemaMap)) {
     const validate = ajv.compile(schema);
-    const absFileGlob = path.join(__dirname, pathPrefix, fileGlob);
+    const absFileGlob = path.join($dirname, pathPrefix, fileGlob);
     const badFileGlob = path.join(path.dirname(absFileGlob), "*");
     let dirErrors = [];
     let badFiles = await glob([`!${absFileGlob}`, badFileGlob]);
-    badFiles = badFiles.map((file) => path.relative(__dirname, file));
+    badFiles = badFiles.map((file) => path.relative($dirname, file));
     if (badFiles.length === 0) {
       badFiles = undefined;
     }
 
     const files = await glob(absFileGlob);
-    console.log({ absFileGlob, files });
     for (const file of files) {
-      const relFilePath = path.relative(__dirname, file);
+      const relFilePath = path.relative($dirname, file);
       const data = require(file);
       try {
-        console.log(`Linting ${relFilePath}`);
         await validate(data);
       } catch (err) {
         const $errors = err.errors.map((e) => ({
