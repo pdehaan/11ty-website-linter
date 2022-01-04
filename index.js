@@ -9,52 +9,59 @@ const glob = require("fast-glob");
 const schemas = require("./schemas");
 
 const schemaMap = {
-	"community/*.js": schemas.community,
-	"demos/*.js": schemas.demos,
-	"plugins/*.json": schemas.plugins,
-	"sites/*.json": schemas.sites,
-	"starters/*.json": schemas.starters,
+  "community/*.js": schemas.community,
+  "demos/*.js": schemas.demos,
+  "plugins/*.json": schemas.plugins,
+  "sites/*.json": schemas.sites,
+  "starters/*.json": schemas.starters,
 };
 
 main(schemaMap, "./src/_data");
 
 async function main(schemaMap = {}, pathPrefix = "") {
-	const ajv = new Ajv({ allErrors: true });
-	addFormats(ajv);
+  console.log({ __dirname });
+  const ajv = new Ajv({ allErrors: true });
+  addFormats(ajv);
 
-	const errors = {};
-	for (const [fileGlob, schema] of Object.entries(schemaMap)) {
+  const errors = {};
+  for (const [fileGlob, schema] of Object.entries(schemaMap)) {
     const validate = ajv.compile(schema);
-		const absFileGlob = path.join(__dirname, pathPrefix, fileGlob);
-		const badFileGlob = path.join(path.dirname(absFileGlob), "*");
-		let dirErrors = [];
-		let badFiles = await glob([`!${absFileGlob}`, badFileGlob]);
-		badFiles = badFiles.map((file) => path.relative(__dirname, file));
-		if (badFiles.length === 0) {
-			badFiles = undefined;
-		}
+    const absFileGlob = path.join(__dirname, pathPrefix, fileGlob);
+    const badFileGlob = path.join(path.dirname(absFileGlob), "*");
+    let dirErrors = [];
+    let badFiles = await glob([`!${absFileGlob}`, badFileGlob]);
+    badFiles = badFiles.map((file) => path.relative(__dirname, file));
+    if (badFiles.length === 0) {
+      badFiles = undefined;
+    }
 
-		const files = await glob(absFileGlob);
-		for (const file of files) {
-			const absFilePath = path.relative(__dirname, file);
-			const data = require(file);
-			try {
-				await validate(data);
-			} catch (err) {
-        const $errors = err.errors.map(e => ({ file: absFilePath, data, error: e}));
+    const files = await glob(absFileGlob);
+    console.log({ absFileGlob, files });
+    for (const file of files) {
+      const relFilePath = path.relative(__dirname, file);
+      const data = require(file);
+      try {
+        console.log(`Linting ${relFilePath}`);
+        await validate(data);
+      } catch (err) {
+        const $errors = err.errors.map((e) => ({
+          file: relFilePath,
+          data,
+          error: e,
+        }));
         dirErrors.push(...$errors);
-			}
-		}
-		if (dirErrors.length === 0) {
-			dirErrors = undefined;
-		}
-		if (dirErrors || badFiles) {
-			errors[schema.$id] = { errors: dirErrors, badFiles };
-		}
-	}
-	
+      }
+    }
+    if (dirErrors.length === 0) {
+      dirErrors = undefined;
+    }
+    if (dirErrors || badFiles) {
+      errors[schema.$id] = { errors: dirErrors, badFiles };
+    }
+  }
+
   if (Object.keys(errors).length) {
-    console.log(JSON.stringify(errors, null, 2));
+    console.error(JSON.stringify(errors, null, 2));
     process.exitCode = 1;
   }
 }
