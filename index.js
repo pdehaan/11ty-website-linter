@@ -18,7 +18,7 @@ const schemaMap = {
 
 main(schemaMap, "./src/_data");
 
-async function main(schemaMap = {}, pathPrefix = "", $dirname=process.cwd()) {
+async function main(schemaMap = {}, pathPrefix = "", $dirname = process.cwd()) {
   const ajv = new Ajv({ allErrors: true });
   addFormats(ajv);
 
@@ -41,19 +41,19 @@ async function main(schemaMap = {}, pathPrefix = "", $dirname=process.cwd()) {
       try {
         await validate(data);
       } catch (err) {
-        const $errors = err.errors.map((e) => ({
+        const $errors = err.errors.map((error) => ({
           file: relFilePath,
           data,
-          error: e,
+          error,
         }));
-        dirErrors.push(...$errors);
+        dirErrors.push($errors);
       }
     }
     if (dirErrors.length === 0) {
       dirErrors = undefined;
     }
     if (dirErrors || badFiles) {
-      errors[schema.$id] = { errors: dirErrors, badFiles };
+      errors[schema.$id] = { errors: dirErrors.flat(), badFiles };
     }
   }
 

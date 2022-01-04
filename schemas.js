@@ -1,6 +1,8 @@
 const S = require("fluent-json-schema");
 
-const baseSchema = S.object().raw({ $async: true }).additionalProperties(false);
+const baseSchema = S.object()
+  .raw({ $async: true })
+  .additionalProperties(false);
 
 module.exports.community = S.object()
   .id("community")
@@ -72,7 +74,7 @@ module.exports.plugins = S.object()
 module.exports.sites = S.object()
   .id("sites")
   // Definitions
-  .definition("uri", S.string().id("#uri").format(S.FORMATS.URI))
+  .definition("uri", S.string().format(S.FORMATS.URI).id("#uri"))
   .definition(
     "business",
     S.object()
@@ -104,20 +106,22 @@ module.exports.sites = S.object()
 
 module.exports.starters = S.object()
   .id("starters")
+  // Definitions
+  .definition("uri", S.string().format(S.FORMATS.URI).id("#uri"))
   // Required properties
   .prop("description", S.string().minLength(1).required())
   .prop("name", S.string().minLength(1).required())
-  .prop("url", S.string().format(S.FORMATS.URI).minLength(1).required())
+  .prop("url", S.ref("#uri").required())
   // Optional properties
   .prop("author", S.string().minLength(1))
-  .prop("demo", S.string().format(S.FORMATS.URI).minLength(1))
+  .prop("demo", S.ref("#uri"))
   .prop("disabled", S.boolean())
   .prop("excludedFromLeaderboards", S.boolean())
   .prop("featured", S.boolean())
   .prop("npmStartScript", S.string().minLength(1))
   .prop("official", S.boolean())
   .prop("order", S.integer())
-  .prop("source_url", S.string().format(S.FORMATS.URI).minLength(1))
+  .prop("source_url", S.ref("#uri"))
   // Misc
   .extend(baseSchema)
   .valueOf();
