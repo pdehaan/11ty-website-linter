@@ -26,10 +26,11 @@ module.exports.community = S.object()
     ]).id("#keys")
   )
   // Required Properties
-  .prop("author", S.string().minLength(1).required())
   .prop("key", S.ref("#keys").required())
   .prop("title", S.string().minLength(1).required())
   .prop("url", S.string().format(S.FORMATS.URI).required())
+  // Optional Properties
+  .prop("author", S.string())
   // Misc
   .extend(baseSchema)
   .valueOf();
